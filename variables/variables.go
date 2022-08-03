@@ -72,6 +72,7 @@ const (
 	VarOs                 // | os                   | LWD | String  | ""      | Operating system name, linux, windows or darwin |
 	VarOsLinux            // | os_linux             | LWD | Boolean | false   | If operating system is linux, its value is true |
 	VarOsWindows          // | os_windows           | LWD | Boolean | false   | If operating system is Windows, its value is true |
+	VarOsDarwin           // | os_darwin            | LWD | Boolean | false   | If operating system is Darwin/macOS, its value is true |
 	VarTimeNow            // | time_now             | LWD | Integer | 0       | Current time in YYYYMMDDHHMMSS format |
 	VarFilePath           // | file_path            | LWD | String  | ""      | Path of the file |
 	VarFileName           // | file_name            | LWD | String  | ""      | Name of the file including extension. Example: document.docx |
@@ -113,6 +114,7 @@ var (
 		VarOs:                 "os",
 		VarOsLinux:            "os_linux",
 		VarOsWindows:          "os_windows",
+		VarOsDarwin:           "os_darwin",
 		VarTimeNow:            "time_now",
 		VarFilePath:           "file_path",
 		VarFileName:           "file_name",
@@ -141,6 +143,7 @@ var (
 		VarOs:                 MetaFileProcess | MetaString,
 		VarOsLinux:            MetaFileProcess | MetaBool,
 		VarOsWindows:          MetaFileProcess | MetaBool,
+		VarOsDarwin:           MetaFileProcess | MetaBool,
 		VarTimeNow:            MetaFileProcess | MetaInt,
 		VarFilePath:           MetaFileProcess | MetaString,
 		VarFileName:           MetaFileProcess | MetaString,
@@ -169,6 +172,7 @@ var (
 		VarOs:                 ValueFunc(varOsFunc),
 		VarOsLinux:            ValueFunc(varOsLinuxFunc),
 		VarOsWindows:          ValueFunc(varOsWindowsFunc),
+		VarOsDarwin:           ValueFunc(varOsDarwinFunc),
 		VarTimeNow:            ValueFunc(varTimeNowFunc),
 		VarFilePath:           ValueFunc(varFilePathFunc),
 		VarFileName:           ValueFunc(varFileNameFunc),
@@ -358,6 +362,10 @@ func varOsLinuxFunc(_ ScanContext) (interface{}, error) {
 
 func varOsWindowsFunc(_ ScanContext) (interface{}, error) {
 	return runtime.GOOS == "windows", nil
+}
+
+func varOsDarwinFunc(_ ScanContext) (interface{}, error) {
+	return runtime.GOOS == "darwin", nil
 }
 
 func varTimeNowFunc(_ ScanContext) (interface{}, error) {
