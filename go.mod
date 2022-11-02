@@ -1,11 +1,11 @@
 module github.com/binalyze/gora
 
-go 1.17
+go 1.18
 
 require (
 	github.com/VirusTotal/gyp v0.8.0
 	github.com/djherbis/times v1.5.0
-	github.com/hillu/go-yara/v4 v4.2.3
+	github.com/hillu/go-yara/v4 v4.2.4
 	github.com/shirou/gopsutil/v3 v3.22.4
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
