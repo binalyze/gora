@@ -78,7 +78,7 @@ func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) err
 		vars = variables.List()
 	}
 
-	if err := initVariables(target, c.vars, vars); err != nil {
+	if err := c.initVariables(target, vars); err != nil {
 		return err
 	}
 
@@ -203,7 +203,7 @@ func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...str
 		vars = variables.List()
 	}
 
-	if err := initVariables(target, c.vars, vars); err != nil {
+	if err := c.initVariables(target, vars); err != nil {
 		return err
 	}
 
@@ -309,12 +309,12 @@ func mergeCompilerErrors(cm []yara.CompilerMessage) string {
 	return strings.Join(msgs, " ; ")
 }
 
-func initVariables(target ScanTarget, vars *variables.Variables, vt []variables.VariableType) error {
+func (c *Compiled) initVariables(target ScanTarget, vars []variables.VariableType) error {
 	switch target {
 	case ScanProcess:
-		vars.InitProcessVariables(vt)
+		c.vars.InitProcessVariables(vars)
 	case ScanFile:
-		vars.InitFileVariables(vt)
+		c.vars.InitFileVariables(vars)
 	default:
 		return errors.New("invalid scan target:" + strconv.Itoa(int(target)))
 	}
