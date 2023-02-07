@@ -38,8 +38,19 @@ func NewCompiled() *Compiled {
 	}
 }
 
+// RuleNamespace represents a rule and its namespace.
+type RuleNamespace struct {
+	Rule      string
+	Namespace string
+}
+
 // CompileString compiles the YARA rules.
 func (c *Compiled) CompileString(target ScanTarget, rule, namespace string) error {
+	return c.CompileStrings(target, []RuleNamespace{{Rule: rule, Namespace: namespace}})
+}
+
+// CompileStrings compiles the YARA rules.
+func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) error {
 	if c.rules != nil {
 		return ErrAlreadyCompiled
 	}
@@ -51,33 +62,28 @@ func (c *Compiled) CompileString(target ScanTarget, rule, namespace string) erro
 	defer compiler.Destroy()
 
 	parser := new(variables.Parser)
-	err = parser.ParseFromReader(strings.NewReader(rule))
-	if err != nil {
-		return fmt.Errorf("variable parser error: %w", err)
+	var fallbackAllVars bool
+	for _, rule := range ruleNs {
+		if err = parser.ParseFromReader(strings.NewReader(rule.Rule)); err != nil {
+			return fmt.Errorf("variable parser error: %w", err)
+		}
+
+		if len(parser.Includes()) > 0 {
+			fallbackAllVars = true
+		}
 	}
 
 	vars := parser.Variables()
-	if len(parser.Includes()) > 0 {
+	if fallbackAllVars {
 		vars = variables.List()
 	}
 
-	switch target {
-	case ScanProcess:
-		c.vars.InitProcessVariables(vars)
-	case ScanFile:
-		c.vars.InitFileVariables(vars)
-	default:
-		return errors.New("invalid scan target:" + strconv.Itoa(int(target)))
+	if err := initVariables(target, c.vars, vars); err != nil {
+		return err
 	}
 
 	if err = c.vars.DefineCompilerVariables(compiler); err != nil {
 		err = fmt.Errorf("compiler define variable error: %w", err)
-		return compilerError(compiler, err)
-	}
-
-	err = compiler.AddString(rule, namespace)
-	if err != nil {
-		err = fmt.Errorf("compiler add rule error: %w", err)
 		return compilerError(compiler, err)
 	}
 
@@ -197,13 +203,8 @@ func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...str
 		vars = variables.List()
 	}
 
-	switch target {
-	case ScanProcess:
-		c.vars.InitProcessVariables(vars)
-	case ScanFile:
-		c.vars.InitFileVariables(vars)
-	default:
-		return errors.New("invalid scan target:" + strconv.Itoa(int(target)))
+	if err := initVariables(target, c.vars, vars); err != nil {
+		return err
 	}
 
 	err = c.vars.DefineCompilerVariables(compiler)
@@ -306,4 +307,16 @@ func mergeCompilerErrors(cm []yara.CompilerMessage) string {
 		msgs = append(msgs, fmt.Sprintf("#%d '%s' '%s':%d", i+1, m.Text, filepath.Base(m.Filename), m.Line))
 	}
 	return strings.Join(msgs, " ; ")
+}
+
+func initVariables(target ScanTarget, vars *variables.Variables, vt []variables.VariableType) error {
+	switch target {
+	case ScanProcess:
+		vars.InitProcessVariables(vt)
+	case ScanFile:
+		vars.InitFileVariables(vt)
+	default:
+		return errors.New("invalid scan target:" + strconv.Itoa(int(target)))
+	}
+	return nil
 }
