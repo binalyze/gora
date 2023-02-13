@@ -87,6 +87,14 @@ func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) err
 		return compilerError(compiler, err)
 	}
 
+	for _, rule := range ruleNs {
+		err = compiler.AddString(rule.Rule, rule.Namespace)
+		if err != nil {
+			err = fmt.Errorf("compiler add rule error: %w", err)
+			return compilerError(compiler, err)
+		}
+	}
+
 	c.rules, err = compiler.GetRules()
 	if err != nil {
 		err = fmt.Errorf("compiler get rules error: %w", err)
