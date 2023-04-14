@@ -8,12 +8,14 @@ import (
 // ScanContextImpl implements the ScanContext interface. It is a simple implementation to set the required values to be
 // used as ScanContext interface.
 type ScanContextImpl struct {
-	ctx      context.Context
-	finfo    fs.FileInfo
-	fpath    string
-	pid      int
-	proc     ProcessInfo
-	valErrFn func(VariableDefiner, VariableType, error) error
+	ctx             context.Context
+	finfo           fs.FileInfo
+	fpath           string
+	pid             int
+	proc            ProcessInfo
+	isProcessCtx    bool
+	isFileSystemCtx bool
+	valErrFn        func(VariableDefiner, VariableType, error) error
 }
 
 var _ ScanContext = (*ScanContextImpl)(nil)
@@ -59,6 +61,26 @@ func (sc *ScanContextImpl) FilePath() string {
 // SetFilePath sets the underlying file path to be returned from FilePath method.
 func (sc *ScanContextImpl) SetFilePath(p string) {
 	sc.fpath = p
+}
+
+// SetFileSystemContext sets file system context flag
+func (sc *ScanContextImpl) SetFileSystemContext(v bool) {
+	sc.isFileSystemCtx = v
+}
+
+// IsFileSystemContext is to implement the ScanContext interface.
+func (sc *ScanContextImpl) IsFileSystemContext() bool {
+	return sc.isFileSystemCtx
+}
+
+// SetProcessContext is to implement the ScanContext interface.
+func (sc *ScanContextImpl) SetProcessContext(v bool) {
+	sc.isProcessCtx = v
+}
+
+// IsProcessContext is to implement the ScanContext interface.
+func (sc *ScanContextImpl) IsProcessContext() bool {
+	return sc.isProcessCtx
 }
 
 // HandleValueError is to implement the ScanContext interface. It calls underlying value error handler if exists,

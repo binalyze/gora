@@ -36,6 +36,8 @@ type (
 		FileInfo() fs.FileInfo
 		Pid() int
 		ProcessInfo() ProcessInfo
+		IsFileSystemContext() bool
+		IsProcessContext() bool
 		HandleValueError(VariableDefiner, VariableType, error) error
 	}
 
@@ -73,6 +75,8 @@ const (
 	VarOsLinux            // | os_linux             | LWD | Boolean | false   | If operating system is linux, its value is true |
 	VarOsWindows          // | os_windows           | LWD | Boolean | false   | If operating system is Windows, its value is true |
 	VarOsDarwin           // | os_darwin            | LWD | Boolean | false   | If operating system is Darwin/macOS, its value is true |
+	VarIsFileSystemCtx    // | is_fs                | LWD | Boolean | false   | Determines whether the current scan context is running for the file system. |
+	VarIsProcessCtx       // | is_proc              | LWD | Boolean | false   | Determines whether the current scan context is running for the processes. |
 	VarTimeNow            // | time_now             | LWD | Integer | 0       | Current time in YYYYMMDDHHMMSS format |
 	VarFilePath           // | file_path            | LWD | String  | ""      | Path of the file |
 	VarFileName           // | file_name            | LWD | String  | ""      | Name of the file including extension. Example: document.docx |
@@ -115,6 +119,8 @@ var (
 		VarOsLinux:            "os_linux",
 		VarOsWindows:          "os_windows",
 		VarOsDarwin:           "os_darwin",
+		VarIsFileSystemCtx:    "is_filesystem",
+		VarIsProcessCtx:       "is_process",
 		VarTimeNow:            "time_now",
 		VarFilePath:           "file_path",
 		VarFileName:           "file_name",
@@ -144,6 +150,8 @@ var (
 		VarOsLinux:            MetaFileProcess | MetaBool,
 		VarOsWindows:          MetaFileProcess | MetaBool,
 		VarOsDarwin:           MetaFileProcess | MetaBool,
+		VarIsFileSystemCtx:    MetaFileProcess | MetaBool,
+		VarIsProcessCtx:       MetaFileProcess | MetaBool,
 		VarTimeNow:            MetaFileProcess | MetaInt,
 		VarFilePath:           MetaFileProcess | MetaString,
 		VarFileName:           MetaFileProcess | MetaString,
@@ -173,6 +181,8 @@ var (
 		VarOsLinux:            ValueFunc(varOsLinuxFunc),
 		VarOsWindows:          ValueFunc(varOsWindowsFunc),
 		VarOsDarwin:           ValueFunc(varOsDarwinFunc),
+		VarIsFileSystemCtx:    ValueFunc(varIsFileSystemCtxFunc),
+		VarIsProcessCtx:       ValueFunc(varIsProcessCtxFunc),
 		VarTimeNow:            ValueFunc(varTimeNowFunc),
 		VarFilePath:           ValueFunc(varFilePathFunc),
 		VarFileName:           ValueFunc(varFileNameFunc),
@@ -370,6 +380,14 @@ func varOsDarwinFunc(_ ScanContext) (interface{}, error) {
 
 func varTimeNowFunc(_ ScanContext) (interface{}, error) {
 	return intTimeHelper(time.Now())
+}
+
+func varIsFileSystemCtxFunc(sCtx ScanContext) (interface{}, error) {
+	return sCtx.IsFileSystemContext(), nil
+}
+
+func varIsProcessCtxFunc(sCtx ScanContext) (interface{}, error) {
+	return sCtx.IsProcessContext(), nil
 }
 
 func varFilePathFunc(sCtx ScanContext) (interface{}, error) {
