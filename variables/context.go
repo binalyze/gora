@@ -28,6 +28,8 @@ func (sc *ScanContextImpl) Reset() {
 	sc.pid = 0
 	sc.proc = nil
 	sc.valErrFn = nil
+	sc.isProcessCtx = false
+	sc.isFileSystemCtx = false
 }
 
 // Context is to implement the ScanContext interface. It returns context.Background() if underlying context is missing.
