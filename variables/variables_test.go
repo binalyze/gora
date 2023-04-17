@@ -82,6 +82,16 @@ func (m *scanContextMock) HandleValueError(VariableDefiner, VariableType, error)
 	return args.Error(0)
 }
 
+func (m *scanContextMock) InFileSystem() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *scanContextMock) InProcess() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
 type processInfoMock struct {
 	mock.Mock
 }
