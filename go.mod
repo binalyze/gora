@@ -9,8 +9,8 @@ require (
 	github.com/djherbis/times v1.5.0
 	github.com/hillu/go-yara/v4 v4.3.0
 	github.com/shirou/gopsutil/v3 v3.23.1
-	github.com/stretchr/testify v1.8.1
-	golang.org/x/sys v0.5.0
+	github.com/stretchr/testify v1.8.2
+	golang.org/x/sys v0.8.0
 )
 
 require (
