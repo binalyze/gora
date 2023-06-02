@@ -14,8 +14,8 @@ github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/hillu/go-yara/v4 v4.3.1 h1:q3M96NlJgNouK4YlL4CQCg7LiGOlTvx2Avn7PXpCfbg=
-github.com/hillu/go-yara/v4 v4.3.1/go.mod h1:AHEs/FXVMQKVVlT6iG9d+q1BRr0gq0WoAWZQaZ0gS7s=
+github.com/hillu/go-yara/v4 v4.3.2 h1:HGqUN3ORUduWZbb95RQjut4UzavGDbtt/C6SnGB3Amk=
+github.com/hillu/go-yara/v4 v4.3.2/go.mod h1:AHEs/FXVMQKVVlT6iG9d+q1BRr0gq0WoAWZQaZ0gS7s=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
