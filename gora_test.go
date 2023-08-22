@@ -1,26 +1,29 @@
 package gora_test
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/binalyze/gora"
+	"github.com/binalyze/gora/variables"
 )
 
 func TestCompileString(t *testing.T) {
 	comp := gora.NewCompiled()
-	err := comp.CompileString(gora.ScanFile, `rule x{`, "")
+	err := comp.CompileString(`rule x{`, "")
 	require.Error(t, err)
 	require.Nil(t, comp.Rules())
 
 	comp = gora.NewCompiled()
-	err = comp.CompileString(gora.ScanFile, rulestrFs, "")
+	err = comp.CompileString(rulestrFs, "")
 	require.NoError(t, err)
 	require.NotNil(t, comp.Rules())
 }
@@ -30,13 +33,48 @@ func TestCompileFile(t *testing.T) {
 
 	comp := gora.NewCompiled()
 	path := genFile(t, tempDir, `rule x{`)
-	err := comp.CompileFiles(gora.ScanFile, true, path)
+	err := comp.CompileFiles(true, path)
 	require.Error(t, err)
 	require.Nil(t, comp.Rules())
 
 	comp = gora.NewCompiled()
 	path = genFile(t, tempDir, rulestrFs)
-	err = comp.CompileFiles(gora.ScanFile, true, path)
+	err = comp.CompileFiles(true, path)
+	require.NoError(t, err)
+	require.NotNil(t, comp.Rules())
+}
+
+func TestBuildRuleWithAllVars(t *testing.T) {
+	tempDir := t.TempDir()
+
+	const ee = " == "
+
+	vars := variables.List()
+	var sb strings.Builder
+
+	for i, v := range vars {
+		sb.WriteString(v.String())
+
+		switch m := v.Meta(); {
+		case m&variables.MetaBool != 0:
+		case m&variables.MetaFloat != 0, m&variables.MetaInt != 0:
+			sb.WriteString(ee)
+			sb.WriteString("0")
+		case m&variables.MetaString != 0:
+			sb.WriteString(ee)
+			sb.WriteString("\"\"")
+		}
+
+		if i < len(vars)-1 {
+			sb.WriteString(" and ")
+		}
+	}
+
+	rs := fmt.Sprintf(ruleAllVarsTmpl, sb.String())
+
+	comp := gora.NewCompiled()
+	path := genFile(t, tempDir, rs)
+	err := comp.CompileFiles(true, path)
 	require.NoError(t, err)
 	require.NotNil(t, comp.Rules())
 }
@@ -48,6 +86,14 @@ const rulestrFs = `
         $my_text_string = "test"
     condition:
         $my_text_string
+}
+`
+
+const ruleAllVarsTmpl = `
+rule all_vars
+{
+    condition:
+        %s
 }
 `
 

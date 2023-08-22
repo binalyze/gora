@@ -107,9 +107,6 @@ const (
 	MetaInt
 	MetaFloat
 	MetaString
-	MetaFile
-	MetaProcess
-	MetaFileProcess = MetaFile | MetaProcess
 )
 
 var (
@@ -146,33 +143,33 @@ var (
 
 	// varMetas holds the metadata of all variables.
 	varMetas = [typeEnd]MetaType{
-		VarOs:                 MetaFileProcess | MetaString,
-		VarOsLinux:            MetaFileProcess | MetaBool,
-		VarOsWindows:          MetaFileProcess | MetaBool,
-		VarOsDarwin:           MetaFileProcess | MetaBool,
-		VarInFileSystem:       MetaFileProcess | MetaBool,
-		VarInProcess:          MetaFileProcess | MetaBool,
-		VarTimeNow:            MetaFileProcess | MetaInt,
-		VarFilePath:           MetaFileProcess | MetaString,
-		VarFileName:           MetaFileProcess | MetaString,
-		VarFileExtension:      MetaFileProcess | MetaString,
-		VarFileReadonly:       MetaFileProcess | MetaBool,
-		VarFileHidden:         MetaFileProcess | MetaBool,
-		VarFileSystem:         MetaFileProcess | MetaBool,
-		VarFileCompressed:     MetaFileProcess | MetaBool,
-		VarFileEncrypted:      MetaFileProcess | MetaBool,
-		VarFileModifiedTime:   MetaFileProcess | MetaInt,
-		VarFileAccessedTime:   MetaFileProcess | MetaInt,
-		VarFileChangedTime:    MetaFileProcess | MetaInt,
-		VarFileBirthTime:      MetaFileProcess | MetaInt,
-		VarProcessId:          MetaProcess | MetaInt,
-		VarProcessParentId:    MetaProcess | MetaInt,
-		VarProcessUserName:    MetaProcess | MetaString,
-		VarProcessUserSid:     MetaProcess | MetaString,
-		VarProcessSessionId:   MetaProcess | MetaInt,
-		VarProcessName:        MetaProcess | MetaString,
-		VarProcessPath:        MetaProcess | MetaString,
-		VarProcessCommandLine: MetaProcess | MetaString,
+		VarOs:                 MetaString,
+		VarOsLinux:            MetaBool,
+		VarOsWindows:          MetaBool,
+		VarOsDarwin:           MetaBool,
+		VarInFileSystem:       MetaBool,
+		VarInProcess:          MetaBool,
+		VarTimeNow:            MetaInt,
+		VarFilePath:           MetaString,
+		VarFileName:           MetaString,
+		VarFileExtension:      MetaString,
+		VarFileReadonly:       MetaBool,
+		VarFileHidden:         MetaBool,
+		VarFileSystem:         MetaBool,
+		VarFileCompressed:     MetaBool,
+		VarFileEncrypted:      MetaBool,
+		VarFileModifiedTime:   MetaInt,
+		VarFileAccessedTime:   MetaInt,
+		VarFileChangedTime:    MetaInt,
+		VarFileBirthTime:      MetaInt,
+		VarProcessId:          MetaInt,
+		VarProcessParentId:    MetaInt,
+		VarProcessUserName:    MetaString,
+		VarProcessUserSid:     MetaString,
+		VarProcessSessionId:   MetaInt,
+		VarProcessName:        MetaString,
+		VarProcessPath:        MetaString,
+		VarProcessCommandLine: MetaString,
 	}
 
 	// Valuers holds the Valuer implementations of all variables.
@@ -212,7 +209,7 @@ const intFileTimeLayout = "20060102150405"
 // List returns the list of all available variables. It creates a new slice at every call.
 func List() []VariableType {
 	list := make([]VariableType, 0, len(varNames)-1)
-	for v := range varNames[1:] {
+	for v := 1; v < len(varNames); v++ {
 		list = append(list, VariableType(v))
 	}
 	return list
@@ -239,16 +236,9 @@ func (v VariableType) Meta() MetaType {
 	return 0
 }
 
-// InitFileVariables sets Variables instance's applicable variables. It filters the given variables if they are not
-// applicable for file scan. See metadata of the variable.
-func (vr *Variables) InitFileVariables(vars []VariableType) {
-	vr.setVariables(vars, MetaFile)
-}
-
-// InitProcessVariables sets Variables instance's applicable variables. It filters the given variables if they are not
-// applicable for process scan. See metadata of the variable.
-func (vr *Variables) InitProcessVariables(vars []VariableType) {
-	vr.setVariables(vars, MetaProcess)
+// InitVariables sets Variables instance's applicable variables.
+func (vr *Variables) InitVariables(vars []VariableType) {
+	vr.setVariables(vars)
 }
 
 // DefineCompilerVariables defines the already set variables to the given compiler using their default zero values.
@@ -308,7 +298,7 @@ func (vr *Variables) Variables() []VariableType {
 	return list
 }
 
-func (vr *Variables) setVariables(vars []VariableType, metaMask MetaType) {
+func (vr *Variables) setVariables(vars []VariableType) {
 	vr.list = []VariableType{}
 	vmap := make(map[VariableType]struct{}, typeEnd) // deduplicate if any.
 
@@ -316,10 +306,9 @@ func (vr *Variables) setVariables(vars []VariableType, metaMask MetaType) {
 		if _, ok := vmap[vid]; ok {
 			continue
 		}
-		if vid.Meta()&metaMask != 0 {
-			vr.list = append(vr.list, vid)
-			vmap[vid] = struct{}{}
-		}
+
+		vr.list = append(vr.list, vid)
+		vmap[vid] = struct{}{}
 	}
 }
 
