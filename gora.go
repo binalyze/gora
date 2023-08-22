@@ -3,10 +3,8 @@ package gora
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/hillu/go-yara/v4"
@@ -15,15 +13,6 @@ import (
 )
 
 var ErrAlreadyCompiled = errors.New("already compiled")
-
-// ScanTarget represents a target for yara scan.
-type ScanTarget byte
-
-// Scan targets are file system and process memory.
-const (
-	ScanFile ScanTarget = iota
-	ScanProcess
-)
 
 // Compiled holds the compiled rules and its associated external variables.
 type Compiled struct {
@@ -45,12 +34,12 @@ type RuleNamespace struct {
 }
 
 // CompileString compiles the YARA rules.
-func (c *Compiled) CompileString(target ScanTarget, rule, namespace string) error {
-	return c.CompileStrings(target, []RuleNamespace{{Rule: rule, Namespace: namespace}})
+func (c *Compiled) CompileString(rule, namespace string) error {
+	return c.CompileStrings([]RuleNamespace{{Rule: rule, Namespace: namespace}})
 }
 
 // CompileStrings compiles the YARA rules.
-func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) error {
+func (c *Compiled) CompileStrings(ruleNs []RuleNamespace) error {
 	if c.rules != nil {
 		return ErrAlreadyCompiled
 	}
@@ -61,26 +50,8 @@ func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) err
 	}
 	defer compiler.Destroy()
 
-	parser := new(variables.Parser)
-	var fallbackAllVars bool
-	for _, rule := range ruleNs {
-		if err = parser.ParseFromReader(strings.NewReader(rule.Rule)); err != nil {
-			return fmt.Errorf("variable parser error: %w", err)
-		}
-
-		if len(parser.Includes()) > 0 {
-			fallbackAllVars = true
-		}
-	}
-
-	vars := parser.Variables()
-	if fallbackAllVars {
-		vars = variables.List()
-	}
-
-	if err := c.initVariables(target, vars); err != nil {
-		return err
-	}
+	vars := variables.List()
+	c.initVariables(vars)
 
 	if err = c.vars.DefineCompilerVariables(compiler); err != nil {
 		err = fmt.Errorf("compiler define variable error: %w", err)
@@ -105,7 +76,7 @@ func (c *Compiled) CompileStrings(target ScanTarget, ruleNs []RuleNamespace) err
 
 // CompileRulesFileOrDir compiles the YARA rules in the given directory or single file, and
 // sets namespace of each file by cleaning file name(s).
-func (c *Compiled) CompileFileOrDir(target ScanTarget, filenameNS bool, path string) error {
+func (c *Compiled) CompileFileOrDir(filenameNS bool, path string) error {
 	if c.rules != nil {
 		return ErrAlreadyCompiled
 	}
@@ -115,17 +86,17 @@ func (c *Compiled) CompileFileOrDir(target ScanTarget, filenameNS bool, path str
 		return err
 	}
 	if info.IsDir() {
-		return c.CompileDir(target, filenameNS, path)
+		return c.CompileDir(filenameNS, path)
 	}
 	if info.Mode().IsRegular() {
-		return c.CompileFiles(target, filenameNS, path)
+		return c.CompileFiles(filenameNS, path)
 	}
 	return fmt.Errorf("'%s' is not a directory or a regular file", path)
 }
 
 // CompileDir compiles the YARA rules in the given directory and
 // sets namespace of each file by cleaning file name(s).
-func (c *Compiled) CompileDir(target ScanTarget, filenameNS bool, dir string) error {
+func (c *Compiled) CompileDir(filenameNS bool, dir string) error {
 	if c.rules != nil {
 		return ErrAlreadyCompiled
 	}
@@ -153,12 +124,12 @@ func (c *Compiled) CompileDir(target ScanTarget, filenameNS bool, dir string) er
 	if len(paths) == 0 {
 		return errors.New("no yara files")
 	}
-	return c.CompileFiles(target, filenameNS, paths...)
+	return c.CompileFiles(filenameNS, paths...)
 }
 
 // CompileFiles compiles the YARA rules in the given file paths,
 // sets namespace of each file by cleaning file name(s).
-func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...string) error {
+func (c *Compiled) CompileFiles(filenameNS bool, paths ...string) error {
 	if c.rules != nil {
 		return ErrAlreadyCompiled
 	}
@@ -169,7 +140,6 @@ func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...str
 	}
 	defer compiler.Destroy()
 
-	parser := new(variables.Parser)
 	files := make([]*os.File, 0, len(paths))
 
 	defer func() {
@@ -178,7 +148,6 @@ func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...str
 		}
 	}()
 
-	var fallbackAllVars bool
 	for _, path := range paths {
 		var f *os.File
 		f, err = os.Open(path)
@@ -197,23 +166,10 @@ func (c *Compiled) CompileFiles(target ScanTarget, filenameNS bool, paths ...str
 		}
 
 		files = append(files, f)
-
-		if err = parser.ParseFromReader(f); err != nil {
-			return fmt.Errorf("variable parser error: %w", err)
-		}
-		_, _ = f.Seek(0, io.SeekStart)
-		if len(parser.Includes()) > 0 {
-			fallbackAllVars = true
-		}
-	}
-	vars := parser.Variables()
-	if fallbackAllVars {
-		vars = variables.List()
 	}
 
-	if err := c.initVariables(target, vars); err != nil {
-		return err
-	}
+	vars := variables.List()
+	c.initVariables(vars)
 
 	err = c.vars.DefineCompilerVariables(compiler)
 	if err != nil {
@@ -317,14 +273,6 @@ func mergeCompilerErrors(cm []yara.CompilerMessage) string {
 	return strings.Join(msgs, " ; ")
 }
 
-func (c *Compiled) initVariables(target ScanTarget, vars []variables.VariableType) error {
-	switch target {
-	case ScanProcess:
-		c.vars.InitProcessVariables(vars)
-	case ScanFile:
-		c.vars.InitFileVariables(vars)
-	default:
-		return errors.New("invalid scan target:" + strconv.Itoa(int(target)))
-	}
-	return nil
+func (c *Compiled) initVariables(vars []variables.VariableType) {
+	c.vars.InitVariables(vars)
 }

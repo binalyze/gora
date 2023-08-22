@@ -9,22 +9,15 @@ import (
 	"runtime"
 	"testing"
 
+	. "github.com/binalyze/gora/variables"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	. "github.com/binalyze/gora/variables"
 )
 
 var AllVars []VariableType
-var AllVarsOnlyProcs []VariableType
 
 func init() {
 	AllVars = List()
-	for _, vid := range AllVars {
-		if vid.Meta()&MetaProcess != 0 && vid.Meta()&MetaFile == 0 {
-			AllVarsOnlyProcs = append(AllVarsOnlyProcs, vid)
-		}
-	}
 }
 
 type variableDefinerMock struct {
@@ -118,33 +111,25 @@ func (m *processInfoMock) CmdlineWithContext(ctx context.Context) (string, error
 	return args.String(0), args.Error(1)
 }
 
-func checkMetaAll(vars []VariableType, mask MetaType) bool {
+func checkMetaAll(vars []VariableType) bool {
 	for _, v := range vars {
-		if v.Meta()&mask == 0 {
+		if v.Meta() == 0 {
 			return false
 		}
 	}
 	return true
 }
 
-func TestVariables_InitFileScanVariables(t *testing.T) {
+func TestVariables_InitVariables(t *testing.T) {
 	var vr Variables
-	vr.InitFileVariables(AllVars)
-	require.True(t, checkMetaAll(vr.Variables(), MetaFile))
+	vr.InitVariables(AllVars)
+	require.True(t, checkMetaAll(vr.Variables()))
 }
 
-func TestVariables_InitProcessScanVariables(t *testing.T) {
-	var vr Variables
-	vr.InitProcessVariables(AllVars)
-	require.True(t, checkMetaAll(vr.Variables(), MetaProcess))
-}
-
-func TestVariables_InitAll(t *testing.T) {
-	var vr Variables
-	vr.InitProcessVariables(AllVars)
-	vr.InitFileVariables(AllVars)
-	require.True(t, checkMetaAll(vr.Variables(), MetaProcess))
-	require.True(t, checkMetaAll(vr.Variables(), MetaFile))
+func TestVariables_ListLength(t *testing.T) {
+	// AllVars built using varNames with ignoring 0 index which has no value
+	// therefore it must be equal to len(Valuers)-1
+	require.Len(t, AllVars, len(Valuers)-1)
 }
 
 func TestVariables_DefineCompilerVariables(t *testing.T) {
@@ -160,46 +145,22 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 	}{
 		{
 			vars:   []VariableType{},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: new(variableDefinerMock),
 			},
 		},
 		{
-			vars:   []VariableType{},
-			initer: (*Variables).InitProcessVariables,
-			args: args{
-				compiler: new(variableDefinerMock),
-			},
-		},
-		{
-			vars:   []VariableType{0},
-			initer: (*Variables).InitFileVariables,
-			args: args{
-				compiler: new(variableDefinerMock),
-			},
-		},
-		{
-			vars:   []VariableType{0},
-			initer: (*Variables).InitProcessVariables,
+			vars:    []VariableType{0},
+			initer:  (*Variables).InitVariables,
+			wantErr: true,
 			args: args{
 				compiler: new(variableDefinerMock),
 			},
 		},
 		{
 			vars:   []VariableType{VarFilePath},
-			initer: (*Variables).InitFileVariables,
-			args: args{
-				compiler: func() *variableDefinerMock {
-					m := new(variableDefinerMock)
-					m.On("DefineVariable", VarFilePath.String(), defaultVarValue(VarFilePath.Meta())).Return(nil)
-					return m
-				}(),
-			},
-		},
-		{
-			vars:   []VariableType{VarFilePath, AllVarsOnlyProcs[0]},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -210,7 +171,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarProcessId},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -221,7 +182,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarOs},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -232,7 +193,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarOsLinux},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -243,7 +204,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarFileName, VarFileExtension},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -255,7 +216,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarFileName},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -268,7 +229,7 @@ func TestVariables_DefineCompilerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarProcessId},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				compiler: func() *variableDefinerMock {
 					m := new(variableDefinerMock)
@@ -306,15 +267,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 	}{
 		{
 			vars:   []VariableType{},
-			initer: (*Variables).InitFileVariables,
-			args: args{
-				sCtx:    new(scanContextMock),
-				scanner: new(variableDefinerMock),
-			},
-		},
-		{
-			vars:   []VariableType{},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx:    new(scanContextMock),
 				scanner: new(variableDefinerMock),
@@ -322,7 +275,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarFilePath},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx: func() *scanContextMock {
 					m := new(scanContextMock)
@@ -346,7 +299,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarFilePath},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx: func() *scanContextMock {
 					m := new(scanContextMock)
@@ -362,7 +315,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarFilePath, VarFileName},
-			initer: (*Variables).InitFileVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx: func() *scanContextMock {
 					m := new(scanContextMock)
@@ -387,7 +340,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarProcessId, VarFileName},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx: func() *scanContextMock {
 					m := new(scanContextMock)
@@ -405,7 +358,7 @@ func TestVariables_DefineScannerVariables(t *testing.T) {
 		},
 		{
 			vars:   []VariableType{VarProcessName},
-			initer: (*Variables).InitProcessVariables,
+			initer: (*Variables).InitVariables,
 			args: args{
 				sCtx: func() *scanContextMock {
 					m := new(scanContextMock)
@@ -456,7 +409,7 @@ func TestVariables_DefineScannerVariables_valueError(t *testing.T) {
 	scanner.On("DefineVariable", VarFilePath.String(), defaultVarValue(VarFilePath.Meta())).Return(nil).Times(1)
 
 	var vr Variables
-	vr.InitFileVariables([]VariableType{VarFilePath})
+	vr.InitVariables([]VariableType{VarFilePath})
 
 	err := vr.DefineScannerVariables(sCtx, scanner)
 	require.Error(t, err)
@@ -481,7 +434,7 @@ func defaultVarValue(meta MetaType) (defVal interface{}) {
 
 func TestVariables_Copy(t *testing.T) {
 	vr1 := new(Variables)
-	vr1.InitFileVariables(AllVars)
+	vr1.InitVariables(AllVars)
 
 	got := vr1.Copy()
 	if !reflect.DeepEqual(got, vr1) {
