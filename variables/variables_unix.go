@@ -4,6 +4,7 @@
 package variables
 
 import (
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -30,4 +31,20 @@ func varProcessSessionIdFunc(sCtx ScanContext) (interface{}, error) {
 		return nil, err
 	}
 	return int64(sid), nil
+}
+
+func varProcessUserSidFunc(sCtx ScanContext) (interface{}, error) {
+	uname, err := varProcessUserNameFunc(sCtx)
+	if err != nil {
+		return nil, err
+	}
+	name, ok := uname.(string)
+	if !ok || name == "" {
+		return nil, nil
+	}
+	usr, err := user.Lookup(name)
+	if err != nil {
+		return nil, err
+	}
+	return usr.Uid, nil
 }

@@ -50,3 +50,20 @@ func varProcessSessionIdFunc(sCtx ScanContext) (interface{}, error) {
 	}
 	return int64(sessionId), nil
 }
+
+func varProcessUserSidFunc(sCtx ScanContext) (interface{}, error) {
+	uname, err := varProcessUserNameFunc(sCtx)
+	if err != nil {
+		return nil, err
+	}
+	name, ok := uname.(string)
+	if !ok || name == "" {
+		return nil, nil
+	}
+	sid, _, _, e := syscall.LookupSID("", name)
+	if e != nil {
+		return nil, e
+	}
+
+	return sid.String()
+}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -492,22 +491,6 @@ func varProcessUserNameFunc(sCtx ScanContext) (interface{}, error) {
 		return nil, nil
 	}
 	return proc.Username()
-}
-
-func varProcessUserSidFunc(sCtx ScanContext) (interface{}, error) {
-	uname, err := varProcessUserNameFunc(sCtx)
-	if err != nil {
-		return nil, err
-	}
-	name, ok := uname.(string)
-	if !ok || name == "" {
-		return nil, nil
-	}
-	usr, err := user.Lookup(name)
-	if err != nil {
-		return nil, err
-	}
-	return usr.Uid, nil
 }
 
 func varProcessNameFunc(sCtx ScanContext) (interface{}, error) {
