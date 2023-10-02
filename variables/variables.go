@@ -64,39 +64,40 @@ type (
 )
 
 // Variable types.
-// L = Linux, W = Windows, D = Darwin
+// L = Linux, W = Windows, D = Darwin, A = AIX
 
 const (
 	_ VariableType = iota
-	//                       | Name                 | OS  | Type    | Default | Description                                                   |
-	//                       |----------------------|-----|---------|---------|---------------------------------------------------------------|
-	VarOs                 // | os                   | LWD | String  | ""      | Operating system name, linux, windows or darwin |
-	VarOsLinux            // | os_linux             | LWD | Boolean | false   | If operating system is linux, its value is true |
-	VarOsWindows          // | os_windows           | LWD | Boolean | false   | If operating system is Windows, its value is true |
-	VarOsDarwin           // | os_darwin            | LWD | Boolean | false   | If operating system is Darwin/macOS, its value is true |
-	VarInFileSystem       // | in_filesystem        | LWD | Boolean | false   | Determines whether the current scan context is running for the file system. |
-	VarInProcess          // | in_process           | LWD | Boolean | false   | Determines whether the current scan context is running for the processes. |
-	VarTimeNow            // | time_now             | LWD | Integer | 0       | Current time in YYYYMMDDHHMMSS format |
-	VarFilePath           // | file_path            | LWD | String  | ""      | Path of the file |
-	VarFileName           // | file_name            | LWD | String  | ""      | Name of the file including extension. Example: document.docx |
-	VarFileExtension      // | file_extension       | LWD | String  | ""      | Extension of the file without leading dot. Example: docx |
-	VarFileReadonly       // | file_readonly        | LWD | Boolean | false   | If it is a readonly file, its value is true |
-	VarFileHidden         // | file_hidden          | LWD | Boolean | false   | If it is a hidden file, its value is true |
-	VarFileSystem         // | file_system          |  W  | Boolean | false   | If it is a system file, its value is true |
-	VarFileCompressed     // | file_compressed      |  W  | Boolean | false   | If it is a compressed file, its value is true |
-	VarFileEncrypted      // | file_encrypted       |  W  | Boolean | false   | If it is an encrypted file, its value is true |
-	VarFileModifiedTime   // | file_modified_time   | LWD | Integer | 0       | File's modification time in YYYYMMDDHHMMSS format |
-	VarFileAccessedTime   // | file_accessed_time   | LWD | Integer | 0       | File's access time in YYYYMMDDHHMMSS format |
-	VarFileChangedTime    // | file_changed_time    | L D | Integer | 0       | File's change time in YYYYMMDDHHMMSS format |
-	VarFileBirthTime      // | file_birth_time      |  WD | Integer | 0       | File's birth time in YYYYMMDDHHMMSS format |
-	VarProcessId          // | process_id           | LWD | Integer | 0	      | Process's id |
-	VarProcessParentId    // | process_parent_id    | LWD | Integer | 0       | Parent process id |
-	VarProcessUserName    // | process_user_name    | LWD | String  | ""      | Process's user name. Windows format: <computer name or domain name>\<user name> |
-	VarProcessUserSid     // | process_user_sid     | LWD | String  | ""      | Process's user SID. This returns UID of the user as string on Unixes. |
-	VarProcessSessionId   // | process_session_id   | LWD | Integer | 0       | Process's session id |
-	VarProcessName        // | process_name         | LWD | String  | ""      | Process's name |
-	VarProcessPath        // | process_path         | LWD | String  | ""      | Process's path |
-	VarProcessCommandLine // | process_command_line | LWD | String  | ""      | Process's command line |
+	//                       | Name                 | OS   | Type    | Default | Description                                                   |
+	//                       |----------------------|------|---------|---------|---------------------------------------------------------------|
+	VarOs                 // | os                   | LWDA | String  | ""      | Operating system name, linux, windows, darwin or aix |
+	VarOsLinux            // | os_linux             | LWDA | Boolean | false   | If operating system is linux, its value is true |
+	VarOsWindows          // | os_windows           | LWDA | Boolean | false   | If operating system is Windows, its value is true |
+	VarOsDarwin           // | os_darwin            | LWDA | Boolean | false   | If operating system is Darwin/macOS, its value is true |
+	VarOsAIX              // | os_aix               | LWDA | Boolean | false   | If operating system is AIX, its value is true |
+	VarInFileSystem       // | in_filesystem        | LWDA | Boolean | false   | Determines whether the current scan context is running for the file system. |
+	VarInProcess          // | in_process           | LWDA | Boolean | false   | Determines whether the current scan context is running for the processes. |
+	VarTimeNow            // | time_now             | LWDA | Integer | 0       | Current time in YYYYMMDDHHMMSS format |
+	VarFilePath           // | file_path            | LWDA | String  | ""      | Path of the file |
+	VarFileName           // | file_name            | LWDA | String  | ""      | Name of the file including extension. Example: document.docx |
+	VarFileExtension      // | file_extension       | LWDA | String  | ""      | Extension of the file without leading dot. Example: docx |
+	VarFileReadonly       // | file_readonly        | LWDA | Boolean | false   | If it is a readonly file, its value is true |
+	VarFileHidden         // | file_hidden          | LWDA | Boolean | false   | If it is a hidden file, its value is true |
+	VarFileSystem         // | file_system          |  W   | Boolean | false   | If it is a system file, its value is true |
+	VarFileCompressed     // | file_compressed      |  W   | Boolean | false   | If it is a compressed file, its value is true |
+	VarFileEncrypted      // | file_encrypted       |  W   | Boolean | false   | If it is an encrypted file, its value is true |
+	VarFileModifiedTime   // | file_modified_time   | LWDA | Integer | 0       | File's modification time in YYYYMMDDHHMMSS format |
+	VarFileAccessedTime   // | file_accessed_time   | LWDA | Integer | 0       | File's access time in YYYYMMDDHHMMSS format |
+	VarFileChangedTime    // | file_changed_time    | L DA | Integer | 0       | File's change time in YYYYMMDDHHMMSS format |
+	VarFileBirthTime      // | file_birth_time      |  WD  | Integer | 0       | File's birth time in YYYYMMDDHHMMSS format |
+	VarProcessId          // | process_id           | LWDA | Integer | 0	      | Process's id |
+	VarProcessParentId    // | process_parent_id    | LWDA | Integer | 0       | Parent process id |
+	VarProcessUserName    // | process_user_name    | LWDA | String  | ""      | Process's user name. Windows format: <computer name or domain name>\<user name> |
+	VarProcessUserSid     // | process_user_sid     | LWDA | String  | ""      | Process's user SID. This returns UID of the user as string on Unixes. |
+	VarProcessSessionId   // | process_session_id   | LWDA | Integer | 0       | Process's session id |
+	VarProcessName        // | process_name         | LWDA | String  | ""      | Process's name |
+	VarProcessPath        // | process_path         | LWDA | String  | ""      | Process's path |
+	VarProcessCommandLine // | process_command_line | LWDA | String  | ""      | Process's command line |
 	typeEnd
 )
 
@@ -115,6 +116,7 @@ var (
 		VarOsLinux:            "os_linux",
 		VarOsWindows:          "os_windows",
 		VarOsDarwin:           "os_darwin",
+		VarOsAIX:              "os_aix",
 		VarInFileSystem:       "in_filesystem",
 		VarInProcess:          "in_process",
 		VarTimeNow:            "time_now",
@@ -146,6 +148,7 @@ var (
 		VarOsLinux:            MetaBool,
 		VarOsWindows:          MetaBool,
 		VarOsDarwin:           MetaBool,
+		VarOsAIX:              MetaBool,
 		VarInFileSystem:       MetaBool,
 		VarInProcess:          MetaBool,
 		VarTimeNow:            MetaInt,
@@ -177,6 +180,7 @@ var (
 		VarOsLinux:            ValueFunc(varOsLinuxFunc),
 		VarOsWindows:          ValueFunc(varOsWindowsFunc),
 		VarOsDarwin:           ValueFunc(varOsDarwinFunc),
+		VarOsAIX:              ValueFunc(varOsAIX),
 		VarInFileSystem:       ValueFunc(varInFileSystemFunc),
 		VarInProcess:          ValueFunc(varInProcessFunc),
 		VarTimeNow:            ValueFunc(varTimeNowFunc),
@@ -336,6 +340,7 @@ var (
 	vOsValueWindows interface{} = "windows"
 	vOsValueLinux   interface{} = "linux"
 	vOsValueDarwin  interface{} = "darwin"
+	vOsValueAIX     interface{} = "aix"
 )
 
 func varOsFunc(_ ScanContext) (interface{}, error) {
@@ -346,6 +351,8 @@ func varOsFunc(_ ScanContext) (interface{}, error) {
 		return vOsValueLinux, nil
 	case "darwin":
 		return vOsValueDarwin, nil
+	case "aix":
+		return vOsValueAIX, nil
 	default:
 		return runtime.GOOS, nil
 	}
@@ -364,6 +371,10 @@ func varOsWindowsFunc(_ ScanContext) (interface{}, error) {
 
 func varOsDarwinFunc(_ ScanContext) (interface{}, error) {
 	return runtime.GOOS == "darwin", nil
+}
+
+func varOsAIX(_ ScanContext) (interface{}, error) {
+	return runtime.GOOS == "aix", nil
 }
 
 func varTimeNowFunc(_ ScanContext) (interface{}, error) {
